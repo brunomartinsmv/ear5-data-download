@@ -175,6 +175,11 @@ Common variables include:
 For a complete list of available variables, visit:
 https://cds.climate.copernicus.eu/datasets/derived-era5-single-levels-daily-statistics
 
+### Evapotranspiration Analysis
+
+For a detailed guide on downloading and analyzing evapotranspiration data, including variable descriptions and calculation methods, see:
+- **[EVAPOTRANSPIRATION_GUIDE.md](EVAPOTRANSPIRATION_GUIDE.md)** - Comprehensive guide for ET analysis with Cuiaba example
+
 ## Output Format
 
 Downloaded data is saved in NetCDF format (`.nc` files), which can be read with:
