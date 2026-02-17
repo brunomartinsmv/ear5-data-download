@@ -1,4 +1,5 @@
 # ERA5 Data Download
+[![DOI](https://zenodo.org/badge/1154868167.svg)](https://doi.org/10.5281/zenodo.18674894)
 
 Scripts to download ERA5 post-processed daily statistics on single levels from 1940 to present using the Copernicus Climate Data Store (CDS) API.
 
