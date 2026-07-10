@@ -177,6 +177,8 @@ def download_era5_daily_stats(
     frequency: str = "1_hourly",
     output_file: str | None = None,
     area: list[float] | None = None,
+    overwrite: bool = True,
+    sleep_seconds: int = 0,
 ) -> bool:
     """Backward-compatible Python API for the daily-statistics product."""
     args = argparse.Namespace(
@@ -191,11 +193,11 @@ def download_era5_daily_stats(
         output_dir="downloads",
         area=area,
         dry_run=False,
-        overwrite=True,
-        sleep_seconds=0,
+        overwrite=overwrite,
+        sleep_seconds=sleep_seconds,
     )
     targets = build_daily_statistics_target(args)
-    return retrieve_targets(DATASET_DAILY, targets, overwrite=True, sleep_seconds=0) == 0
+    return retrieve_targets(DATASET_DAILY, targets, overwrite=overwrite, sleep_seconds=sleep_seconds) == 0
 
 
 def _target_months_for_year(year: int, start_year: int, end_year: int, start_month: int, end_month: int) -> range:
@@ -261,10 +263,11 @@ def _build_hourly_request(
         "month": months,
         "day": DEFAULT_DAYS,
         "time": DEFAULT_TIMES,
-        "area": args.area,
         "data_format": args.format,
         "download_format": args.download_format,
     }
+    if args.area is not None:
+        request["area"] = args.area
     if dataset != DATASET_LAND:
         request["product_type"] = "reanalysis"
     if dataset == DATASET_PRESSURE_LEVELS:

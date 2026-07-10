@@ -19,7 +19,7 @@ This repository supports requests for:
 
 ## Prerequisites
 
-- Python 3.6 or higher
+- Python 3.9 or higher
 - `pip`
 - A CDS account with accepted terms for each ERA5 product you plan to download
 - A configured `~/.cdsapirc` credentials file

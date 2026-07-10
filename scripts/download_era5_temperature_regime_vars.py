@@ -21,7 +21,7 @@ DATASETS = {
         "dataset": "reanalysis-era5-single-levels",
         "default_chunk": "year",
         "request": {
-            "product_type": ["reanalysis"],
+            "product_type": "reanalysis",
             "variable": [
                 "skin_temperature",
                 "boundary_layer_height",
@@ -65,7 +65,7 @@ DATASETS = {
         "dataset": "reanalysis-era5-pressure-levels",
         "default_chunk": "month",
         "request": {
-            "product_type": ["reanalysis"],
+            "product_type": "reanalysis",
             "variable": [
                 "temperature",
                 "specific_humidity",
@@ -102,7 +102,10 @@ def build_targets(
 
     for year in range(year_start, year_end + 1):
         if chunk_mode == "year":
-            targets.append((year, MONTHS, output_dir / f"{prefix}_{year}.zip"))
+            start_month = month_start if year == year_start else 1
+            end_month = month_end if year == year_end else 12
+            months = [f"{month:02d}" for month in range(start_month, end_month + 1)]
+            targets.append((year, months, output_dir / f"{prefix}_{year}.zip"))
             continue
 
         if chunk_mode == "month":
@@ -126,7 +129,12 @@ def build_request(kind: str, year: int, months: list[str]) -> dict[str, object]:
     return request
 
 
-def summarize_target_state(targets: list[tuple[int, list[str], Path]]) -> tuple[list[tuple[int, list[str], Path]], list[tuple[int, list[str], Path]]]:
+def summarize_target_state(
+    targets: list[tuple[int, list[str], Path]],
+    overwrite: bool,
+) -> tuple[list[tuple[int, list[str], Path]], list[tuple[int, list[str], Path]]]:
+    if overwrite:
+        return [], targets
     existing = []
     missing = []
     for item in targets:
@@ -146,10 +154,11 @@ def download_kind(
     chunk_mode: str,
     dry_run: bool,
     sleep_seconds: int,
-) -> list[Path]:
+    overwrite: bool,
+) -> tuple[list[Path], list[str]]:
     cfg = DATASETS[kind]
     targets = build_targets(kind, year_start, year_end, month_start, month_end, chunk_mode)
-    existing_targets, missing_targets = summarize_target_state(targets)
+    existing_targets, missing_targets = summarize_target_state(targets, overwrite)
 
     print("=" * 72)
     print(f"Preset: {kind}")
@@ -169,9 +178,9 @@ def download_kind(
     if dry_run:
         print("Dry-run: arquivos faltantes que seriam gerados:")
         for year, months, target in missing_targets:
-            month_label = months[0] if len(months) == 1 else "01-12"
+            month_label = months[0] if len(months) == 1 else f"{months[0]}-{months[-1]}"
             print(f"  [{year}][{month_label}] {target}")
-        return [target for _, _, target in missing_targets]
+        return [target for _, _, target in missing_targets], []
 
     import cdsapi
 
@@ -181,7 +190,7 @@ def download_kind(
 
     if not missing_targets:
         print(f"[{kind}] Nada para baixar. Todos os arquivos esperados ja existem.")
-        return [target for _, _, target in existing_targets]
+        return [target for _, _, target in existing_targets], []
 
     last_index = len(missing_targets) - 1
 
@@ -201,11 +210,11 @@ def download_kind(
             time.sleep(sleep_seconds)
 
     if failures:
-        print("\nFalhas encontradas:")
+        print("\nFalhas encontradas:", file=sys.stderr)
         for failure in failures:
-            print(f"  - {failure}")
+            print(f"  - {failure}", file=sys.stderr)
 
-    return generated
+    return generated, failures
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -251,6 +260,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     )
     parser.add_argument("--dry-run", action="store_true", help="Lista os arquivos sem baixar nada.")
     parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Baixa mesmo quando o arquivo alvo ja existe.",
+    )
+    parser.add_argument(
         "--sleep-seconds",
         type=int,
         default=5,
@@ -270,6 +284,8 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit("--end-month deve estar entre 1 e 12")
     if args.start_year == args.end_year and args.start_month > args.end_month:
         raise SystemExit("No mesmo ano, --start-month nao pode ser maior que --end-month")
+    if args.sleep_seconds < 0:
+        raise SystemExit("--sleep-seconds nao pode ser negativo")
 
     presets = ["single-levels", "land", "pressure-levels"] if args.preset == "all" else [args.preset]
 
@@ -284,26 +300,30 @@ def main(argv: list[str] | None = None) -> int:
     print("  - pip install cdsapi")
 
     all_paths: list[Path] = []
+    all_failures: list[str] = []
     for preset in presets:
         chunk_mode = DATASETS[preset]["default_chunk"] if args.chunk == "auto" else args.chunk
-        all_paths.extend(
-            download_kind(
-                kind=preset,
-                year_start=args.start_year,
-                year_end=args.end_year,
-                month_start=args.start_month,
-                month_end=args.end_month,
-                chunk_mode=chunk_mode,
-                dry_run=args.dry_run,
-                sleep_seconds=args.sleep_seconds,
-            )
+        paths, failures = download_kind(
+            kind=preset,
+            year_start=args.start_year,
+            year_end=args.end_year,
+            month_start=args.start_month,
+            month_end=args.end_month,
+            chunk_mode=chunk_mode,
+            dry_run=args.dry_run,
+            sleep_seconds=args.sleep_seconds,
+            overwrite=args.overwrite,
         )
+        all_paths.extend(paths)
+        all_failures.extend(failures)
 
     print("\nResumo final:")
     print(f"  Presets executados: {', '.join(presets)}")
     print(f"  Arquivos alvo: {len(all_paths)}")
     if args.dry_run:
         print("  Modo: dry-run")
+    elif all_failures:
+        print("  Download concluido com falhas")
     else:
         print("  Download concluido")
 
@@ -311,6 +331,9 @@ def main(argv: list[str] | None = None) -> int:
     print("  1. Extrair os GRIBs/ZIPs")
     print("  2. Agregar diario/mensal conforme a variavel")
     print("  3. Reexecutar a analise com skt/solo/cp/blh e, separadamente, com indices derivados")
+
+    if all_failures:
+        return 1
     return 0
 
 
