@@ -196,7 +196,7 @@ def download_kind(
 
     for index, (year, months, target) in enumerate(missing_targets):
         request = build_request(kind, year, months)
-        month_label = months[0] if len(months) == 1 else "01-12"
+        month_label = months[0] if len(months) == 1 else f"{months[0]}-{months[-1]}"
         print(f"[{kind}][{year}][{month_label}] Baixando...")
         try:
             client.retrieve(cfg["dataset"], request).download(str(target))
