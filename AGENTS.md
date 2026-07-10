@@ -16,8 +16,9 @@ The only dependency is `cdsapi` (see `requirements.txt`). Python 3.9+ is require
   `python3 download_era5_daily.py daily-statistics --variables 2m_temperature --start-year 2020 --end-year 2020 --dry-run`
 - Presets: `daily-statistics`, `single-levels`, `land`, `pressure-levels`, `model-levels`
   (see `README.md`). Auxiliary utilities live in `scripts/` and also support `--dry-run`.
-- There is **no test suite, linter config, or build step** in this repo. `--dry-run`
-  is the primary validation mechanism.
+- There is a small **unittest suite** in `tests/`. Run it with
+  `python3 -m unittest discover -s tests -v` (no CDS credentials required).
+  `--dry-run` remains useful for manual end-to-end checks of new CLI options.
 
 ### Real downloads (require external credentials)
 

@@ -282,6 +282,7 @@ def build_model_level_targets(args: argparse.Namespace) -> list[DownloadTarget]:
     variables = args.variables or PRESET_VARIABLES["model-levels"]
     extension = "nc" if args.format == "netcdf" else "grib"
     output_dir = Path(args.output_dir)
+    output_prefix = getattr(args, "output_prefix", "era5_model_levels")
     targets: list[DownloadTarget] = []
 
     for year in range(args.start_year, args.end_year + 1):
@@ -291,7 +292,7 @@ def build_model_level_targets(args: argparse.Namespace) -> list[DownloadTarget]:
                 last_day = calendar.monthrange(year, month)[1]
                 label = f"{year}-{month:02d}"
                 date_range = f"{year}-{month:02d}-01/to/{year}-{month:02d}-{last_day:02d}"
-                output = _default_output("era5_model_levels", f"{year}_{month:02d}", extension, output_dir)
+                output = _default_output(output_prefix, f"{year}_{month:02d}", extension, output_dir)
                 targets.append(
                     DownloadTarget(label, _build_model_level_request(args, variables, date_range), output)
                 )
@@ -300,7 +301,7 @@ def build_model_level_targets(args: argparse.Namespace) -> list[DownloadTarget]:
             for day in range(1, calendar.monthrange(year, month)[1] + 1):
                 label = f"{year}-{month:02d}-{day:02d}"
                 date_range = label
-                output = _default_output("era5_model_levels", f"{year}_{month:02d}_{day:02d}", extension, output_dir)
+                output = _default_output(output_prefix, f"{year}_{month:02d}_{day:02d}", extension, output_dir)
                 targets.append(
                     DownloadTarget(label, _build_model_level_request(args, variables, date_range), output)
                 )
@@ -442,6 +443,7 @@ def build_parser() -> argparse.ArgumentParser:
     model.add_argument("--chunk", choices=["month", "day"], default="month")
     model.add_argument("--levelist", default=DEFAULT_MODEL_LEVELS)
     model.add_argument("--grid", default=DEFAULT_GRID)
+    model.add_argument("--output-prefix", default="era5_model_levels", help="Filename prefix for generated model-level files.")
     model.add_argument("--format", choices=["grib", "netcdf"], default="grib")
 
     return parser
