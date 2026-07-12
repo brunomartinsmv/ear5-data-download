@@ -164,6 +164,7 @@ python3 scripts/download_era5_temperature_regime_vars.py --start-year 2020 --end
 
 ## Documentation
 
+- [CHANGELOG.md](CHANGELOG.md): version history and release notes
 - [docs/era5_variable_checklist.md](docs/era5_variable_checklist.md): operational variable checklist
 - [docs/EVAPOTRANSPIRATION_GUIDE.md](docs/EVAPOTRANSPIRATION_GUIDE.md): evapotranspiration guide
 - [docs/variables_documentation/](docs/variables_documentation/): scientific notes for ERA5 variables
@@ -254,6 +255,7 @@ for the main entrypoint and auxiliary scripts.
 ├── requirements.txt
 ├── tests/                         # Unittest suite (no CDS credentials required)
 │   └── test_download_era5_daily.py
+├── CHANGELOG.md
 ├── LICENSE
 └── README.md
 ```
