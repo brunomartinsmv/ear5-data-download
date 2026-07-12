@@ -19,7 +19,7 @@ This repository supports requests for:
 
 ## Prerequisites
 
-- Python 3.6 or higher
+- Python 3.9 or higher
 - `pip`
 - A CDS account with accepted terms for each ERA5 product you plan to download
 - A configured `~/.cdsapirc` credentials file
@@ -189,6 +189,29 @@ formats can be read with:
 5. Cite ERA5 data in publications:
    Hersbach, H., et al. (2020). ERA5 hourly data on single levels from 1940 to present. Copernicus Climate Change Service (C3S) Climate Data Store (CDS).
 
+### CDS variable naming
+
+ERA5 products use dataset-specific identifiers. The most common pitfall in this
+repository is total column water:
+
+- Daily statistics: `total_column_water_vapor`
+- Hourly single levels: `total_column_water_vapour`
+
+Use the spelling required by the dataset you are requesting. See
+[docs/era5_variable_checklist.md](docs/era5_variable_checklist.md) for the full
+operational inventory.
+
+## Testing
+
+Run the unittest suite without CDS credentials or network access:
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+The tests exercise argument parsing, request construction, and `--dry-run` flows
+for the main entrypoint and auxiliary scripts.
+
 ## Troubleshooting
 
 ### Authentication Error
@@ -229,15 +252,19 @@ formats can be read with:
 │   └── download_era5_temperature_regime_vars.py
 ├── download_era5_daily.py         # Main public entrypoint
 ├── requirements.txt
+├── tests/                         # Unittest suite (no CDS credentials required)
+│   └── test_download_era5_daily.py
+├── LICENSE
 └── README.md
 ```
 
 ## License
 
-This repository contains scripts for downloading ERA5 data. The scripts are
-provided as-is for use with the Copernicus Climate Data Store. See the
-[Copernicus License](https://cds.climate.copernicus.eu/disclaimer-privacy) for
-terms regarding ERA5 data.
+The download scripts in this repository are released under the
+[MIT License](LICENSE).
+
+ERA5 data obtained through the Copernicus Climate Data Store is subject to the
+[Copernicus License](https://cds.climate.copernicus.eu/disclaimer-privacy).
 
 ## Resources
 

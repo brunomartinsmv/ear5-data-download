@@ -5,8 +5,8 @@ repository root.
 
 ## Files
 
-- `download_era5_model_levels.py`: standalone MARS-style downloader for ERA5
-  model-level fields used in profile-based analyses.
+- `download_era5_model_levels.py`: thin wrapper around the shared model-level logic
+  in `download_era5_daily.py` for the Ehrensperger et al. setup.
 - `download_era5_temperature_regime_vars.py`: standalone downloader for
   temperature-regime variables from ERA5 single levels, ERA5-Land, and pressure
   levels.
