@@ -255,6 +255,7 @@ for the main entrypoint and auxiliary scripts.
 ├── requirements.txt
 ├── tests/                         # Unittest suite (no CDS credentials required)
 │   └── test_download_era5_daily.py
+├── AGENTS.md                      # Cursor Cloud agent instructions
 ├── CHANGELOG.md
 ├── LICENSE
 └── README.md
